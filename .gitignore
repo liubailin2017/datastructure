@@ -1,0 +1,11 @@
+.vscode/
+*.out
+*.o
+*.exe
+build/
+CMakeFiles/
+cmake_install.cmake
+*.a
+Makefile
+CMakeChache.txt
+
