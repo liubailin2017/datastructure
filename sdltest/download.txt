@@ -1,0 +1,10 @@
+环境：
+
+mingw32
+
+libSDL2
+libSDL2_image
+
+https://www.libsdl.org/projects/SDL_ttf/
+https://www.libsdl.org/projects/SDL_image/
+https://www.libsdl.org/download-2.0.php
