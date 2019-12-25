@@ -2,8 +2,8 @@
 #include<SDL2/SDL.h>
 #include<stdlib.h> 
 
-#define CNT_W 32
-#define CNT_H 24
+#define CNT_W 20
+#define CNT_H 20
 
 #define delay 300
 
@@ -71,9 +71,9 @@ void init(struct Scene *scene) {
     scene->snake = head;
     scene->food = (struct Food*) malloc(sizeof(struct Food));
     resetFood(scene);
-    scene->bg = 0x00110300;
-    scene->foodColor = 0x00777777;
-    scene->snakeColor = 0x00665566;
+    scene->bg = 0x0000ff00;
+    scene->foodColor = 0x00ff00ff;
+    scene->snakeColor = 0x00000000;
 }
 
 void draw(struct Scene *scene,SDL_Surface *surface) {
@@ -82,11 +82,8 @@ void draw(struct Scene *scene,SDL_Surface *surface) {
     int cw = w/scene->cntw;
     int ch = h/scene->cnth;
     SDL_Rect rect = {0,0,w,h};
-    SDL_Rect rect2 = {1,1,w-2,h-2};
-    SDL_FillRect(surface,&rect,0x00000000);
-    SDL_FillRect(surface,&rect2,scene->bg);
+    SDL_FillRect(surface,&rect,scene->bg);
     struct Node *it = scene->snake;
-    int ish = 1;
     while (it)
     {
         rect.x = cw * it->x;
@@ -94,17 +91,13 @@ void draw(struct Scene *scene,SDL_Surface *surface) {
         rect.w = cw;
         rect.h = ch;
         SDL_Rect tmp = rect;
-        tmp.x ++;
-        tmp.y ++;
+        tmp.x++;
+        tmp.y++;
         tmp.w-=2;
         tmp.h-=2;
-        if(ish) {
-            ish = 0;
-            SDL_FillRect(surface,&rect,0x00000000);
-        }else{
-            SDL_FillRect(surface,&rect,0x66666666);
-        }
-        SDL_FillRect(surface,&tmp,scene->snakeColor);
+
+        SDL_FillRect(surface,&rect,scene->snakeColor);
+        SDL_FillRect(surface,&tmp,0xffffffff);
         it = it->next;
     }
     
@@ -115,18 +108,15 @@ void draw(struct Scene *scene,SDL_Surface *surface) {
     SDL_FillRect(surface,&rect,scene->foodColor);    
 }
 
-void move(struct Scene *scene) {
+
+void move(struct Scene *scene,enum DIRECT dir) {
     struct Node *head = scene->snake;
     struct Node *rear = head->next;
     struct Node *prear = head;
-    
-    enum DIRECT dir = scene->curDir;
- 
 
     while(prear->next->next) {
         prear= prear->next;
     }
-
     if(scene->food->x == scene->snake->x && scene->food->y == scene->snake->y) {
         rear = malloc(sizeof(struct Node));
         resetFood(scene);
@@ -162,28 +152,7 @@ void move(struct Scene *scene) {
     default:
         break;
     }
-
     scene->snake = rear;
-}
-
-void chageDirect(struct Scene *scene,enum DIRECT dir) {
-   switch (dir)
-    {
-    case S_UP:
-        if(scene->curDir == S_DOWN) return ;
-        break;
-    case S_RIGHT:
-        if(scene->curDir == S_LEFT) return ;
-        break;
-    case S_DOWN:
-        if(scene->curDir == S_UP) return ;
-        break;
-    case S_LEFT:
-        if(scene->curDir == S_RIGHT) return ;
-        break;
-    }
-    scene ->curDir = dir;
-    move(scene);
 }
 
 int isStrikeWall(struct Scene *scene) {
@@ -191,27 +160,11 @@ int isStrikeWall(struct Scene *scene) {
     int y = scene->snake->y;
     int w = scene->cntw;
     int h = scene->cnth;
-
-    int isEatSelf = 0, isStrike = 0;
-
     if(x >= 0 && x < w && y >= 0 && y < h) {
-        isStrike = 0;
+        return 0;
     }else {
-        isStrike = 1;
+        return 1;
     }
-    
-    struct Node *it = scene->snake->next;
-    int ish = 1;
-    while (it)
-    {
-        if( x == it->x && y == it->y) {
-            isEatSelf = 1;
-            break;
-        }
-        it = it->next;
-    }
-
-    return isEatSelf || isStrike;
 }
 
 void Destory(struct Scene* scene) {
@@ -230,55 +183,62 @@ void Destory(struct Scene* scene) {
 }
 
 int main(int argc,char* agrv[]) {
-    char title[256] = {0};
     SDL_Event event; 
     int isq = 0;
     SDL_Init(SDL_INIT_EVERYTHING);
     struct Scene scene;
   
 
-    SDL_Window *w = SDL_CreateWindow("贪食蛇",
+    SDL_Window *w = SDL_CreateWindow("Box",
                                     SDL_UNSUPPORTED,SDLK_UNDERSCORE,
-                                    640,480,
+                                    640,640,
                                     SDL_WINDOW_ALLOW_HIGHDPI);
     SDL_Surface *win_surface = SDL_GetWindowSurface(w);
     int tick = SDL_GetTicks();
-    int isgameover = 0; /*  0正在游戏；1表示游戏结束，但是还没有重新开始; 2重新开始 */ 
+    int isgameover = 0;
     while (!isq)
     {
 /* isq */
+    
     init(&scene);
     isgameover = 0;
-    while (isgameover != 2 && !isq)
+    while (!isgameover && !isq)
     {
         while(SDL_PollEvent(&event)) {
             switch (event.type)
             {
             case SDL_KEYDOWN:
-            if(isgameover == 1 || isgameover == 2) {
-                isgameover = 2; 
-            }else { /* ------------------- */
+            
                 switch (event.key.keysym.sym)
                 {
                     case SDLK_UP:
-                        chageDirect(&scene,S_UP);
-                        tick = SDL_GetTicks();                 
+                    if(scene.curDir != S_DOWN) {
+                        scene.curDir = S_UP;  
+                        move(&scene,scene.curDir);                 
+                    }
                         break;
                     case SDLK_RIGHT:
-                        chageDirect(&scene,S_RIGHT);
-                        tick = SDL_GetTicks();              
+                    if(scene.curDir != S_LEFT) {
+                        scene.curDir = S_RIGHT; 
+                        move(&scene,scene.curDir);                 
+                    }
                         break;
                     case SDLK_DOWN:
-                        chageDirect(&scene,S_DOWN); 
-                        tick = SDL_GetTicks();                   
+                    if(scene.curDir != S_UP) {
+                        scene.curDir = S_DOWN;
+                        move(&scene,scene.curDir);                    
+                    }
                         break;
                     case SDLK_LEFT:
-                        chageDirect(&scene,S_LEFT);
-                        tick = SDL_GetTicks();                 
+                    if(scene.curDir != S_RIGHT) {
+                        scene.curDir = S_LEFT;
+                        move(&scene,scene.curDir);                 
+                    }
                     break;
                 }
-            }/* ---------------------*/
-
+                if(isStrikeWall(&scene)) {
+                    printf("strike\n");
+                }
                 break;
             case SDL_KEYUP:
                 break;
@@ -294,21 +254,21 @@ int main(int argc,char* agrv[]) {
             }
         }
 
-        if(!isgameover && SDL_GetTicks() - tick > delay) {
-            move(&scene);
+        
+        if(SDL_GetTicks() - tick > delay) {
+            move(&scene,scene.curDir);
             tick = SDL_GetTicks();
         }
         
-        if(!isgameover && isStrikeWall(&scene)) {
-             isgameover = 1;
+        if(isStrikeWall(&scene)) {
+            isgameover = 1;
         }
-        
+
         draw(&scene,win_surface);
         SDL_UpdateWindowSurface(w);
-        sprintf(title,"贪食蛇 分数 : %5d",scene.score);
-        SDL_SetWindowTitle(w,title);
         SDL_Delay(30);
     }
+
     Destory(&scene);
 /* isq */
     }
@@ -316,3 +276,8 @@ int main(int argc,char* agrv[]) {
     return 0;
 }
 
+/* todo
+1.控制方向
+2.吃到食物增长， 计分
+3.游戏结束，重新开始(包含销毁蛇)
+*/
