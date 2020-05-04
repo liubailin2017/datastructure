@@ -32,6 +32,7 @@ void loadimg() {
     for(int i = 0; i< 10; i++) {
         SDL_RWops * rw = SDL_RWFromMem(data+findex[i], findex[i+1]-findex[i]);
         surface[i] = IMG_Load_RW(rw,1); 
+
     }
     fclose(f);
 }
