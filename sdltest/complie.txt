@@ -4,8 +4,4 @@ D:/lib
 
 别忘记把 解压出来的文件夹的版本号去掉哈
 
-gcc main.c   -Ireplace/SDL2/i686-w64-mingw32/include/SDL2 -Ireplace/SDL2/i686-w64-mingw32/include -Lreplace/SDL2/i686-w64-mingw32/lib  -lmingw32 -lSDL2main -lSDL2
-
--Ireplace/SDL2_image/i686-w64-mingw32/include -Lreplace/SDL2_image/i686-w64-mingw32/lib
-
- -lSDL2_image
+gcc main.c   -Ireplace/SDL2/i686-w64-mingw32/include/SDL2 -Ireplace/SDL2/i686-w64-mingw32/include -Lreplace/SDL2/i686-w64-mingw32/lib  -lmingw32 -lSDL2main -lSDL2 -Ireplace/SDL2_image/i686-w64-mingw32/include -Lreplace/SDL2_image/i686-w64-mingw32/lib -lSDL2_image
