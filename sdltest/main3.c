@@ -3,29 +3,37 @@
 #include<SDL2/SDL_image.h>
 #include<stdlib.h>
 #include<string.h>
-int len;
 
-char data[1024*1024];
+char data[2*1024*1024]; /* 2M 缓存 */
+int findex[11]; /* 索引 */
 
-SDL_Surface*surface = NULL;
+
+SDL_Surface* surface[10] = { NULL};
+
 int cur = 0;
 
 void loadimg() {
     IMG_Init(IMG_INIT_PNG);
 
-    FILE *f = fopen("png/651-1.png","rb");
+    FILE *f = fopen("s.res","rb");
+    
     int i = 0;
-    char c = fgetc(f);
-    while (!feof(f))
+    int offset = 0;
+    int len = 0;
+    while (1)
     {
-        data[i++] = c;
-        c = fgetc(f);
+        findex[i++] =  offset;
+        fread(&len,4,1,f);
+        if( len == -1 ) break;
+        fread(data+offset,len,1,f);
+        offset += len;
     }
-    len = i;
-    printf("len = %d\n",len);
-    SDL_RWops * rw = SDL_RWFromMem(data, len);
-    surface = IMG_Load_RW(rw,1);
 
+    for(int i = 0; i< 10; i++) {
+        SDL_RWops * rw = SDL_RWFromMem(data+findex[i], findex[i+1]-findex[i]);
+        surface[i] = IMG_Load_RW(rw,1); 
+    }
+    fclose(f);
 }
 
 int main(int argc,char* agrv[]) {
@@ -49,6 +57,9 @@ int main(int argc,char* agrv[]) {
         while(SDL_PollEvent(&event)) {
             switch (event.type)
             {
+            case SDL_KEYDOWN:
+                flag = 1;
+                break;
             case SDL_QUIT: 
                 isq =1;
                 break;
@@ -60,7 +71,7 @@ int main(int argc,char* agrv[]) {
         if(SDL_GetTicks() - tick > 200) {
             SDL_Rect rect = { 1,1, 640,480}; 
             SDL_FillRect(win_surf,&rect,0xff00ff00);           
-            SDL_BlitSurface(surface,NULL,win_surf,NULL);
+            SDL_BlitSurface(surface[cur],NULL,win_surf,NULL);
             SDL_UpdateWindowSurface(w);
             if(flag) {
                 cur ++;
